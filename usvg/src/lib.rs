@@ -244,7 +244,7 @@ pub trait SystemFontDB {
     fn load_system_fonts(&mut self);
 }
 
-#[cfg(feature = "text")]
+#[cfg(all(feature = "text", not(target_arch = "wasm32")))]
 impl SystemFontDB for fontdb::Database {
     #[inline]
     fn load_system_fonts(&mut self) {

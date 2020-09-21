@@ -37,7 +37,7 @@ siphasher = "0.2"
 svgtypes = "0.5"
 
 # for text to path
-fontdb = { version = "0.1", optional = true }
+fontdb = { git = "https://github.com/dabreegster/fontdb", branch = "wasm", optional = true, default-features = false }
 rustybuzz = { version = "0.1", optional = true }
 memmap2 = { version = "0.1", optional = true }
 ttf-parser = { version = "0.6", optional = true }
@@ -46,13 +46,19 @@ unicode-script = { version = "0.5", optional = true }
 unicode-vo = { version = "0.1", optional = true }
 
 [features]
-default = ["text"]
+default = ["text", "text_native"]
 text = [
     "fontdb",
-    "memmap2",
-    "rustybuzz",
     "ttf-parser",
     "unicode-bidi",
     "unicode-script",
     "unicode-vo",
+]
+text_native = [
+    "fontdb/fs",
+    "memmap2",
+    "rustybuzz",
+]
+text_stdweb = [
+    "fontdb/stdweb",
 ]

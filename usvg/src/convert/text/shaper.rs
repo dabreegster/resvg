@@ -274,6 +274,7 @@ fn shape_text(
 /// Converts a text into a list of glyph IDs.
 ///
 /// This function will do the BIDI reordering and text shaping.
+#[cfg(not(target_arch = "wasm32"))]
 fn shape_text_with_font(
     text: &str,
     font: fontdb_ext::Font,
@@ -323,6 +324,51 @@ fn shape_text_with_font(
                     font,
                 });
             }
+        }
+
+        Some(glyphs)
+    })?
+}
+
+#[cfg(target_arch = "wasm32")]
+fn shape_text_with_font(
+    text: &str,
+    font: fontdb_ext::Font,
+    state: &State,
+) -> Option<Vec<Glyph>> {
+    state.opt.fontdb.with_face_data(font.id, |font_data, face_index| -> Option<Vec<Glyph>> {
+        let ttf_font = ttf_parser::Font::from_data(font_data, face_index).unwrap();
+
+        let bidi_info = unicode_bidi::BidiInfo::new(text, Some(unicode_bidi::Level::ltr()));
+        let paragraph = &bidi_info.paragraphs[0];
+        let line = paragraph.range.clone();
+
+        let mut glyphs = Vec::new();
+
+        let (levels, runs) = bidi_info.visual_runs(&paragraph, line);
+        for run in runs.iter() {
+            let sub_text = &text[run.clone()];
+            if sub_text.is_empty() {
+                continue;
+            }
+
+            // TODO This doesn't depend on Rustybuzz, so it's WASM compatible. But it doesn't
+            // handle right-to-left text and probably has many other limitations.
+            for (idx, character) in sub_text.chars().enumerate() {
+                if let Some(glyph_id) = ttf_font.glyph_index(character) {
+                    if let Some(width) = ttf_font.glyph_hor_advance(glyph_id) {
+                        glyphs.push(Glyph {
+                            byte_idx: ByteIndex::new(run.start + idx),
+                            id: GlyphId(glyph_id.0),
+                            dx: 0,
+                            dy: 0,
+                            width: width.into(),
+                            font,
+                        });
+                    }
+                }
+            }
+
         }
 
         Some(glyphs)
