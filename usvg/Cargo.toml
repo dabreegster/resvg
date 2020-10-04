@@ -62,3 +62,6 @@ text_native = [
 text_stdweb = [
     "fontdb/stdweb",
 ]
+text_web-sys = [
+    "fontdb/web-sys",
+]
