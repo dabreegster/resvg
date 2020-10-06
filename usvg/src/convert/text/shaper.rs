@@ -345,7 +345,7 @@ fn shape_text_with_font(
 
         let mut glyphs = Vec::new();
 
-        let (levels, runs) = bidi_info.visual_runs(&paragraph, line);
+        let (_levels, runs) = bidi_info.visual_runs(&paragraph, line);
         for run in runs.iter() {
             let sub_text = &text[run.clone()];
             if sub_text.is_empty() {
@@ -354,7 +354,7 @@ fn shape_text_with_font(
 
             // TODO This doesn't depend on Rustybuzz, so it's WASM compatible. But it doesn't
             // handle right-to-left text and probably has many other limitations.
-            for (idx, character) in sub_text.chars().enumerate() {
+            for (idx, character) in sub_text.char_indices() {
                 if let Some(glyph_id) = ttf_font.glyph_index(character) {
                     if let Some(width) = ttf_font.glyph_hor_advance(glyph_id) {
                         glyphs.push(Glyph {
